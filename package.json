@@ -4,10 +4,13 @@
   "description": "Official CLI for the PayBridgeNP payment gateway",
   "type": "module",
   "bin": {
-    "paybridgenp": "./dist/index.js",
-    "paybridge-np": "./dist/index.js"
+    "paybridgenp": "dist/index.js",
+    "paybridge-np": "dist/index.js"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
