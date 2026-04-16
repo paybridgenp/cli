@@ -1,0 +1,34 @@
+{
+  "name": "@paybridge-np/cli",
+  "version": "0.1.0",
+  "description": "Official CLI for the PayBridgeNP payment gateway",
+  "type": "module",
+  "bin": {
+    "paybridgenp": "./dist/index.js",
+    "paybridge-np": "./dist/index.js"
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "bun test src/__tests__"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.0",
+    "@paybridge-np/sdk": "^1.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.0.0",
+    "conf": "^13.0.0",
+    "localtunnel": "^2.0.2",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/localtunnel": "^2.0.4",
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
