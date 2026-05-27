@@ -2,19 +2,19 @@ import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { getApiKey, validateKeyFormat, maskKey, getKeyMode } from "../lib/config.js";
 
 describe("getApiKey", () => {
-  const originalEnv = process.env.PAYBRIDGE_API_KEY;
+  const originalEnv = process.env.PAYBRIDGENP_API_KEY;
 
   afterEach(() => {
     if (originalEnv === undefined) {
-      delete process.env.PAYBRIDGE_API_KEY;
+      delete process.env.PAYBRIDGENP_API_KEY;
     } else {
-      process.env.PAYBRIDGE_API_KEY = originalEnv;
+      process.env.PAYBRIDGENP_API_KEY = originalEnv;
     }
   });
 
-  it("returns env var when PAYBRIDGE_API_KEY is set, ignoring config file", () => {
+  it("returns env var when PAYBRIDGENP_API_KEY is set, ignoring config file", () => {
     const testKey = "sk_test_" + "a".repeat(32);
-    process.env.PAYBRIDGE_API_KEY = testKey;
+    process.env.PAYBRIDGENP_API_KEY = testKey;
     expect(getApiKey()).toBe(testKey);
   });
 });

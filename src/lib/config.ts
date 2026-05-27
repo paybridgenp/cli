@@ -25,7 +25,13 @@ export function getConfig(): { apiKey: string; apiBase: string } | null {
 
 export function saveConfig(apiKey: string, apiBase?: string): void {
   store.set("apiKey", apiKey);
-  if (apiBase) store.set("apiBase", apiBase);
+  if (apiBase) {
+    store.set("apiBase", apiBase);
+  } else {
+    // Clear any stale base URL (e.g. localhost from a previous dev session)
+    // so getApiBase() falls back to the production default.
+    store.delete("apiBase");
+  }
   // Ensure config file is only readable by owner (conf doesn't enforce this on macOS)
   try { fs.chmodSync(store.path, 0o600); } catch { /* best-effort */ }
 }
@@ -36,12 +42,12 @@ export function clearConfig(): void {
 
 export function getApiKey(): string | null {
   // env var takes priority
-  if (process.env.PAYBRIDGE_API_KEY) return process.env.PAYBRIDGE_API_KEY;
+  if (process.env.PAYBRIDGENP_API_KEY) return process.env.PAYBRIDGENP_API_KEY;
   return getConfig()?.apiKey ?? null;
 }
 
 export function getApiBase(): string {
-  if (process.env.PAYBRIDGE_API_BASE) return process.env.PAYBRIDGE_API_BASE;
+  if (process.env.PAYBRIDGENP_API_BASE) return process.env.PAYBRIDGENP_API_BASE;
   return getConfig()?.apiBase ?? "https://api.paybridgenp.com";
 }
 
@@ -58,6 +64,6 @@ export function getKeyMode(key: string): "sandbox" | "live" {
 }
 
 export function getKeySource(): string {
-  if (process.env.PAYBRIDGE_API_KEY) return "PAYBRIDGE_API_KEY environment variable";
+  if (process.env.PAYBRIDGENP_API_KEY) return "PAYBRIDGENP_API_KEY environment variable";
   return `config file (${store.path})`;
 }

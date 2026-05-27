@@ -1,5 +1,5 @@
 import * as http from "http";
-import { PayBridge } from "@paybridge-np/sdk";
+import { PayBridgeNP } from "@paybridge-np/sdk";
 import { openTunnel } from "../../lib/tunnel.js";
 import { blank, error as printError, warn, label, info } from "../../lib/output.js";
 import pc from "picocolors";
@@ -89,7 +89,7 @@ export async function webhooksListenCommand(opts: ListenOpts): Promise<void> {
 
       if (opts.secret) {
         try {
-          await PayBridge.webhooks.constructEvent(body, sig, opts.secret);
+          await PayBridgeNP.webhooks.constructEvent(body, sig, opts.secret);
           res.writeHead(200, { "Content-Type": "text/plain" });
           res.end("OK");
         } catch {
@@ -118,7 +118,7 @@ export async function webhooksListenCommand(opts: ListenOpts): Promise<void> {
       if (opts.forward) {
         try {
           const forwardHeaders: Record<string, string> = { "Content-Type": "application/json" };
-          if (sig) forwardHeaders["X-PayBridge-Signature"] = sig;
+          if (sig) forwardHeaders["X-PayBridgeNP-Signature"] = sig;
           await fetch(opts.forward, {
             method: "POST",
             headers: forwardHeaders,

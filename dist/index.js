@@ -23,18 +23,25 @@ function getConfig() {
 }
 function saveConfig(apiKey, apiBase) {
   store.set("apiKey", apiKey);
-  if (apiBase) store.set("apiBase", apiBase);
+  if (apiBase) {
+    store.set("apiBase", apiBase);
+  } else {
+    store.delete("apiBase");
+  }
   try {
     fs.chmodSync(store.path, 384);
   } catch {
   }
 }
+function clearConfig() {
+  store.clear();
+}
 function getApiKey() {
-  if (process.env.PAYBRIDGE_API_KEY) return process.env.PAYBRIDGE_API_KEY;
+  if (process.env.PAYBRIDGENP_API_KEY) return process.env.PAYBRIDGENP_API_KEY;
   return getConfig()?.apiKey ?? null;
 }
 function getApiBase() {
-  if (process.env.PAYBRIDGE_API_BASE) return process.env.PAYBRIDGE_API_BASE;
+  if (process.env.PAYBRIDGENP_API_BASE) return process.env.PAYBRIDGENP_API_BASE;
   return getConfig()?.apiBase ?? "https://api.paybridgenp.com";
 }
 function maskKey(key) {
@@ -47,12 +54,12 @@ function getKeyMode(key) {
   return key.startsWith("sk_test_") ? "sandbox" : "live";
 }
 function getKeySource() {
-  if (process.env.PAYBRIDGE_API_KEY) return "PAYBRIDGE_API_KEY environment variable";
+  if (process.env.PAYBRIDGENP_API_KEY) return "PAYBRIDGENP_API_KEY environment variable";
   return `config file (${store.path})`;
 }
 
 // src/lib/client.ts
-import { PayBridge } from "@paybridge-np/sdk";
+import { PayBridgeNP } from "@paybridge-np/sdk";
 
 // src/lib/output.ts
 import pc from "picocolors";
@@ -115,7 +122,7 @@ function createClient() {
   if (!apiKey) {
     fatal("Not logged in. Run: paybridgenp login");
   }
-  return new PayBridge({ apiKey, baseUrl: getApiBase() });
+  return new PayBridgeNP({ apiKey, baseUrl: getApiBase() });
 }
 
 // src/commands/login.ts
@@ -145,7 +152,7 @@ async function loginCommand(opts) {
     trimmed = await promptInteractive(existing);
   } else {
     fatal(
-      "No TTY detected. Pass your API key directly:\n\n    paybridgenp login --key sk_test_...\n\nOr set the PAYBRIDGE_API_KEY environment variable to skip login entirely."
+      "No TTY detected. Pass your API key directly:\n\n    paybridgenp login --key sk_test_...\n\nOr set the PAYBRIDGENP_API_KEY environment variable to skip login entirely."
     );
   }
   if (trimmed.startsWith("pk_")) {
@@ -154,19 +161,20 @@ async function loginCommand(opts) {
   if (!validateKeyFormat(trimmed)) {
     fatal("Invalid key format. Expected sk_live_<32chars> or sk_test_<32chars>.");
   }
-  process.env.PAYBRIDGE_API_KEY = trimmed;
+  if (!process.env.PAYBRIDGENP_API_BASE) clearConfig();
+  process.env.PAYBRIDGENP_API_KEY = trimmed;
   const client = createClient();
   try {
     await client.payments.list({ limit: 1 });
   } catch (err) {
-    delete process.env.PAYBRIDGE_API_KEY;
+    delete process.env.PAYBRIDGENP_API_KEY;
     if (err?.statusCode === 401 || err?.statusCode === 403) {
       fatal("Invalid or revoked API key. Check your key in the PayBridgeNP dashboard.");
     }
     error("Could not verify key (network error). Saving anyway.");
   }
-  saveConfig(trimmed, process.env.PAYBRIDGE_API_BASE);
-  delete process.env.PAYBRIDGE_API_KEY;
+  saveConfig(trimmed, process.env.PAYBRIDGENP_API_BASE);
+  delete process.env.PAYBRIDGENP_API_KEY;
   const mode = getKeyMode(trimmed);
   blank();
   success("Logged in.");
@@ -300,7 +308,7 @@ async function testCommand(opts) {
   blank();
   label("eSewa", "merchant code EPAYTEST");
   label("Khalti", "phone 9800000001 \xB7 PIN 1111 \xB7 OTP 987654");
-  label("ConnectIPS", "username testmerchant \xB7 password Test@123");
+  label("Fonepay", "use the provider's sandbox QR flow");
   blank();
 }
 
@@ -311,10 +319,10 @@ import fs2 from "fs";
 import path from "path";
 
 // src/templates/index.ts
-var NEXTJS_CHECKOUT = `import PayBridge from "@paybridge-np/sdk";
+var NEXTJS_CHECKOUT = `import PayBridgeNP from "@paybridge-np/sdk";
 import { NextResponse } from "next/server";
 
-const pb = new PayBridge({ api_key: process.env.PAYBRIDGE_API_KEY! });
+const pb = new PayBridgeNP({ api_key: process.env.PAYBRIDGENP_API_KEY! });
 
 export async function POST(req: Request) {
   const { amount } = await req.json();
@@ -327,16 +335,16 @@ export async function POST(req: Request) {
   return NextResponse.json({ url: session.checkout_url });
 }
 `;
-var NEXTJS_WEBHOOK = `import PayBridge from "@paybridge-np/sdk";
+var NEXTJS_WEBHOOK = `import PayBridgeNP from "@paybridge-np/sdk";
 
 export async function POST(req: Request) {
   const body = await req.text();
   const sig = req.headers.get("x-paybridge-signature") ?? "";
   try {
-    const event = PayBridge.webhooks().constructEvent(
+    const event = PayBridgeNP.webhooks().constructEvent(
       body,
       sig,
-      process.env.PAYBRIDGE_WEBHOOK_SECRET!
+      process.env.PAYBRIDGENP_WEBHOOK_SECRET!
     );
     if (event.type === "payment.succeeded") {
       // TODO: fulfil order
@@ -348,15 +356,15 @@ export async function POST(req: Request) {
   }
 }
 `;
-var NEXTJS_ENV_EXAMPLE = `PAYBRIDGE_API_KEY=sk_test_your_api_key_here
-PAYBRIDGE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+var NEXTJS_ENV_EXAMPLE = `PAYBRIDGENP_API_KEY=sk_test_your_api_key_here
+PAYBRIDGENP_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 `;
-var NODE_INDEX = `import PayBridge from "@paybridge-np/sdk";
+var NODE_INDEX = `import PayBridgeNP from "@paybridge-np/sdk";
 import http from "http";
 import crypto from "crypto";
 
-const pb = new PayBridge({ api_key: process.env.PAYBRIDGE_API_KEY! });
+const pb = new PayBridgeNP({ api_key: process.env.PAYBRIDGENP_API_KEY! });
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
@@ -386,10 +394,10 @@ const server = http.createServer(async (req, res) => {
     const sig = req.headers["x-paybridge-signature"] ?? "";
 
     try {
-      const event = PayBridge.webhooks().constructEvent(
+      const event = PayBridgeNP.webhooks().constructEvent(
         body,
         sig as string,
-        process.env.PAYBRIDGE_WEBHOOK_SECRET!
+        process.env.PAYBRIDGENP_WEBHOOK_SECRET!
       );
       if (event.type === "payment.succeeded") {
         // TODO: fulfil order
@@ -412,12 +420,12 @@ server.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
 `;
-var NODE_ENV_EXAMPLE = `PAYBRIDGE_API_KEY=sk_test_your_api_key_here
-PAYBRIDGE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+var NODE_ENV_EXAMPLE = `PAYBRIDGENP_API_KEY=sk_test_your_api_key_here
+PAYBRIDGENP_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 `;
-var BARE_INDEX = `import PayBridge from "@paybridge-np/sdk";
+var BARE_INDEX = `import PayBridgeNP from "@paybridge-np/sdk";
 
-const pb = new PayBridge({ api_key: process.env.PAYBRIDGE_API_KEY! });
+const pb = new PayBridgeNP({ api_key: process.env.PAYBRIDGENP_API_KEY! });
 
 async function main() {
   // Create a checkout session
@@ -439,7 +447,7 @@ async function main() {
 
 main().catch(console.error);
 `;
-var BARE_ENV_EXAMPLE = `PAYBRIDGE_API_KEY=sk_test_your_api_key_here
+var BARE_ENV_EXAMPLE = `PAYBRIDGENP_API_KEY=sk_test_your_api_key_here
 `;
 function getTemplateFiles(framework, apiKey) {
   const keyPlaceholder = apiKey ?? "sk_test_your_api_key_here";
@@ -494,7 +502,7 @@ function packageJsonFor(name, framework) {
           start: "next start"
         },
         dependencies: {
-          "@paybridge-np/sdk": "^1.3.0",
+          "@paybridge-np/sdk": "^3.0.0",
           next: "^15.0.0",
           react: "^18.0.0",
           "react-dom": "^18.0.0"
@@ -516,7 +524,7 @@ function packageJsonFor(name, framework) {
         version: "0.1.0",
         type: "module",
         scripts: { start: "tsx index.ts", dev: "tsx --watch index.ts" },
-        dependencies: { "@paybridge-np/sdk": "^1.3.0" },
+        dependencies: { "@paybridge-np/sdk": "^3.0.0" },
         devDependencies: { "@types/node": "^20.0.0", tsx: "^4.0.0", typescript: "^5.7.0" }
       },
       null,
@@ -529,7 +537,7 @@ function packageJsonFor(name, framework) {
       version: "0.1.0",
       type: "module",
       scripts: { start: "tsx index.ts" },
-      dependencies: { "@paybridge-np/sdk": "^1.3.0" },
+      dependencies: { "@paybridge-np/sdk": "^3.0.0" },
       devDependencies: { "@types/node": "^20.0.0", tsx: "^4.0.0", typescript: "^5.7.0" }
     },
     null,
@@ -618,7 +626,7 @@ async function initCommand(flags = {}) {
   blank();
   if (!apiKey) {
     console.log(
-      "  " + pc5.yellow("\u26A0") + pc5.dim(" No API key found. Edit .env and add your PAYBRIDGE_API_KEY, or run ") + pc5.bold("paybridgenp login")
+      "  " + pc5.yellow("\u26A0") + pc5.dim(" No API key found. Edit .env and add your PAYBRIDGENP_API_KEY, or run ") + pc5.bold("paybridgenp login")
     );
     blank();
   }
@@ -888,7 +896,7 @@ async function webhooksTestEventCommand(url, opts) {
   if (opts.secret) {
     const timestamp = Math.floor(Date.now() / 1e3).toString();
     const sig = createHmac("sha256", opts.secret).update(`${timestamp}.${body}`).digest("hex");
-    headers["X-PayBridge-Signature"] = `t=${timestamp},v1=${sig}`;
+    headers["X-PayBridgeNP-Signature"] = `t=${timestamp},v1=${sig}`;
   }
   blank();
   console.log("  " + pc9.bold(`POST ${url}`));
@@ -915,7 +923,7 @@ async function webhooksTestEventCommand(url, opts) {
 
 // src/commands/webhooks/listen.ts
 import * as http from "http";
-import { PayBridge as PayBridge2 } from "@paybridge-np/sdk";
+import { PayBridgeNP as PayBridgeNP2 } from "@paybridge-np/sdk";
 
 // src/lib/tunnel.ts
 import { spawn } from "child_process";
@@ -1038,7 +1046,7 @@ async function webhooksListenCommand(opts) {
       const sig = req.headers["x-paybridge-signature"] ?? null;
       if (opts.secret) {
         try {
-          await PayBridge2.webhooks.constructEvent(body, sig, opts.secret);
+          await PayBridgeNP2.webhooks.constructEvent(body, sig, opts.secret);
           res.writeHead(200, { "Content-Type": "text/plain" });
           res.end("OK");
         } catch {
@@ -1063,7 +1071,7 @@ async function webhooksListenCommand(opts) {
       if (opts.forward) {
         try {
           const forwardHeaders = { "Content-Type": "application/json" };
-          if (sig) forwardHeaders["X-PayBridge-Signature"] = sig;
+          if (sig) forwardHeaders["X-PayBridgeNP-Signature"] = sig;
           await fetch(opts.forward, {
             method: "POST",
             headers: forwardHeaders,
@@ -1133,7 +1141,7 @@ function makeWebhooksCommand(debug) {
 // src/index.ts
 var program = new Command3();
 var debugMode = false;
-program.name("paybridgenp").description("Official CLI for the PayBridgeNP payment gateway").version("0.1.0").option("--debug", "show full error details").hook("preAction", (thisCommand) => {
+program.name("paybridgenp").description("Official CLI for the PayBridgeNP payment gateway").version("0.1.1").option("--debug", "show full error details").hook("preAction", (thisCommand) => {
   debugMode = !!thisCommand.opts().debug;
 });
 program.command("login").description("Authenticate with your PayBridgeNP API key").option("--key <api-key>", "provide key non-interactively (for CI/scripts)").action((opts) => loginCommand({ key: opts.key }));

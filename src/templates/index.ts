@@ -7,10 +7,10 @@ export interface TemplateFile {
   content: string;
 }
 
-const NEXTJS_CHECKOUT = `import PayBridge from "@paybridge-np/sdk";
+const NEXTJS_CHECKOUT = `import PayBridgeNP from "@paybridge-np/sdk";
 import { NextResponse } from "next/server";
 
-const pb = new PayBridge({ api_key: process.env.PAYBRIDGE_API_KEY! });
+const pb = new PayBridgeNP({ api_key: process.env.PAYBRIDGENP_API_KEY! });
 
 export async function POST(req: Request) {
   const { amount } = await req.json();
@@ -24,16 +24,16 @@ export async function POST(req: Request) {
 }
 `;
 
-const NEXTJS_WEBHOOK = `import PayBridge from "@paybridge-np/sdk";
+const NEXTJS_WEBHOOK = `import PayBridgeNP from "@paybridge-np/sdk";
 
 export async function POST(req: Request) {
   const body = await req.text();
   const sig = req.headers.get("x-paybridge-signature") ?? "";
   try {
-    const event = PayBridge.webhooks().constructEvent(
+    const event = PayBridgeNP.webhooks().constructEvent(
       body,
       sig,
-      process.env.PAYBRIDGE_WEBHOOK_SECRET!
+      process.env.PAYBRIDGENP_WEBHOOK_SECRET!
     );
     if (event.type === "payment.succeeded") {
       // TODO: fulfil order
@@ -46,16 +46,16 @@ export async function POST(req: Request) {
 }
 `;
 
-const NEXTJS_ENV_EXAMPLE = `PAYBRIDGE_API_KEY=sk_test_your_api_key_here
-PAYBRIDGE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+const NEXTJS_ENV_EXAMPLE = `PAYBRIDGENP_API_KEY=sk_test_your_api_key_here
+PAYBRIDGENP_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 `;
 
-const NODE_INDEX = `import PayBridge from "@paybridge-np/sdk";
+const NODE_INDEX = `import PayBridgeNP from "@paybridge-np/sdk";
 import http from "http";
 import crypto from "crypto";
 
-const pb = new PayBridge({ api_key: process.env.PAYBRIDGE_API_KEY! });
+const pb = new PayBridgeNP({ api_key: process.env.PAYBRIDGENP_API_KEY! });
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
@@ -85,10 +85,10 @@ const server = http.createServer(async (req, res) => {
     const sig = req.headers["x-paybridge-signature"] ?? "";
 
     try {
-      const event = PayBridge.webhooks().constructEvent(
+      const event = PayBridgeNP.webhooks().constructEvent(
         body,
         sig as string,
-        process.env.PAYBRIDGE_WEBHOOK_SECRET!
+        process.env.PAYBRIDGENP_WEBHOOK_SECRET!
       );
       if (event.type === "payment.succeeded") {
         // TODO: fulfil order
@@ -112,13 +112,13 @@ server.listen(3000, () => {
 });
 `;
 
-const NODE_ENV_EXAMPLE = `PAYBRIDGE_API_KEY=sk_test_your_api_key_here
-PAYBRIDGE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+const NODE_ENV_EXAMPLE = `PAYBRIDGENP_API_KEY=sk_test_your_api_key_here
+PAYBRIDGENP_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 `;
 
-const BARE_INDEX = `import PayBridge from "@paybridge-np/sdk";
+const BARE_INDEX = `import PayBridgeNP from "@paybridge-np/sdk";
 
-const pb = new PayBridge({ api_key: process.env.PAYBRIDGE_API_KEY! });
+const pb = new PayBridgeNP({ api_key: process.env.PAYBRIDGENP_API_KEY! });
 
 async function main() {
   // Create a checkout session
@@ -141,7 +141,7 @@ async function main() {
 main().catch(console.error);
 `;
 
-const BARE_ENV_EXAMPLE = `PAYBRIDGE_API_KEY=sk_test_your_api_key_here
+const BARE_ENV_EXAMPLE = `PAYBRIDGENP_API_KEY=sk_test_your_api_key_here
 `;
 
 export function getTemplateFiles(framework: Framework, apiKey: string | null): TemplateFile[] {

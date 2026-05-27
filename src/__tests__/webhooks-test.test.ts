@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { createHmac } from "crypto";
-import { PayBridge } from "@paybridge-np/sdk";
+import { PayBridgeNP } from "@paybridge-np/sdk";
 import { randomHex } from "../commands/webhooks/test-event.js";
 
 // --- helpers mirroring the production code ---
@@ -137,20 +137,20 @@ describe("payment.refunded payload", () => {
 });
 
 describe("signature header", () => {
-  it("sets X-PayBridge-Signature when --secret is provided", () => {
+  it("sets X-PayBridgeNP-Signature when --secret is provided", () => {
     const body = JSON.stringify(buildPayload("payment.succeeded", 10000));
     const secret = "whsec_testsecret";
     const header = buildSignature(body, secret);
     expect(header).toMatch(/^t=\d+,v1=[0-9a-f]{64}$/);
   });
 
-  it("generated signature is verifiable by PayBridge.webhooks.constructEvent", async () => {
+  it("generated signature is verifiable by PayBridgeNP.webhooks.constructEvent", async () => {
     const payload = buildPayload("payment.succeeded", 10000);
     const body = JSON.stringify(payload);
     const secret = "whsec_verifytest";
     const header = buildSignature(body, secret);
 
-    const event = await PayBridge.webhooks.constructEvent(body, header, secret);
+    const event = await PayBridgeNP.webhooks.constructEvent(body, header, secret);
     expect(event.type).toBe("payment.succeeded");
   });
 });

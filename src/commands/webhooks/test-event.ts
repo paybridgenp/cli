@@ -101,7 +101,7 @@ export async function webhooksTestEventCommand(url: string, opts: TestEventOpts)
     const sig = createHmac("sha256", opts.secret)
       .update(`${timestamp}.${body}`)
       .digest("hex");
-    headers["X-PayBridge-Signature"] = `t=${timestamp},v1=${sig}`;
+    headers["X-PayBridgeNP-Signature"] = `t=${timestamp},v1=${sig}`;
   }
 
   blank();

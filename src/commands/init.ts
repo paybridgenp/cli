@@ -36,7 +36,7 @@ function packageJsonFor(name: string, framework: Framework): string {
           start: "next start",
         },
         dependencies: {
-          "@paybridge-np/sdk": "^1.3.0",
+          "@paybridge-np/sdk": "^3.0.0",
           next: "^15.0.0",
           react: "^18.0.0",
           "react-dom": "^18.0.0",
@@ -59,7 +59,7 @@ function packageJsonFor(name: string, framework: Framework): string {
         version: "0.1.0",
         type: "module",
         scripts: { start: "tsx index.ts", dev: "tsx --watch index.ts" },
-        dependencies: { "@paybridge-np/sdk": "^1.3.0" },
+        dependencies: { "@paybridge-np/sdk": "^3.0.0" },
         devDependencies: { "@types/node": "^20.0.0", tsx: "^4.0.0", typescript: "^5.7.0" },
       },
       null,
@@ -74,7 +74,7 @@ function packageJsonFor(name: string, framework: Framework): string {
       version: "0.1.0",
       type: "module",
       scripts: { start: "tsx index.ts" },
-      dependencies: { "@paybridge-np/sdk": "^1.3.0" },
+      dependencies: { "@paybridge-np/sdk": "^3.0.0" },
       devDependencies: { "@types/node": "^20.0.0", tsx: "^4.0.0", typescript: "^5.7.0" },
     },
     null,
@@ -175,7 +175,7 @@ export async function initCommand(flags: { name?: string; framework?: string } =
     console.log(
       "  " +
         pc.yellow("⚠") +
-        pc.dim(" No API key found. Edit .env and add your PAYBRIDGE_API_KEY, or run ") +
+        pc.dim(" No API key found. Edit .env and add your PAYBRIDGENP_API_KEY, or run ") +
         pc.bold("paybridgenp login")
     );
     blank();

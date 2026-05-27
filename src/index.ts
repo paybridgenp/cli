@@ -14,7 +14,7 @@ let debugMode = false;
 program
   .name("paybridgenp")
   .description("Official CLI for the PayBridgeNP payment gateway")
-  .version("0.1.0")
+  .version("0.1.1")
   .option("--debug", "show full error details")
   .hook("preAction", (thisCommand) => {
     debugMode = !!thisCommand.opts().debug;

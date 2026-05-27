@@ -1,4 +1,4 @@
-import { saveConfig, getConfig, maskKey, validateKeyFormat, getKeyMode } from "../lib/config.js";
+import { saveConfig, clearConfig, getConfig, maskKey, validateKeyFormat, getKeyMode } from "../lib/config.js";
 import { createClient } from "../lib/client.js";
 import { success, error, fatal, blank, label } from "../lib/output.js";
 import pc from "picocolors";
@@ -37,7 +37,7 @@ export async function loginCommand(opts: { key?: string }): Promise<void> {
     fatal(
       "No TTY detected. Pass your API key directly:\n\n" +
       "    paybridgenp login --key sk_test_...\n\n" +
-      "Or set the PAYBRIDGE_API_KEY environment variable to skip login entirely."
+      "Or set the PAYBRIDGENP_API_KEY environment variable to skip login entirely."
     );
   }
 
@@ -51,21 +51,23 @@ export async function loginCommand(opts: { key?: string }): Promise<void> {
   }
 
   // Verify key works against the API
-  process.env.PAYBRIDGE_API_KEY = trimmed;
+  // Clear any stale stored apiBase so verification hits production, not a leftover localhost URL.
+  if (!process.env.PAYBRIDGENP_API_BASE) clearConfig();
+  process.env.PAYBRIDGENP_API_KEY = trimmed;
   const client = createClient();
 
   try {
     await client.payments.list({ limit: 1 });
   } catch (err: any) {
-    delete process.env.PAYBRIDGE_API_KEY;
+    delete process.env.PAYBRIDGENP_API_KEY;
     if (err?.statusCode === 401 || err?.statusCode === 403) {
       fatal("Invalid or revoked API key. Check your key in the PayBridgeNP dashboard.");
     }
     error("Could not verify key (network error). Saving anyway.");
   }
 
-  saveConfig(trimmed, process.env.PAYBRIDGE_API_BASE);
-  delete process.env.PAYBRIDGE_API_KEY;
+  saveConfig(trimmed, process.env.PAYBRIDGENP_API_BASE);
+  delete process.env.PAYBRIDGENP_API_KEY;
 
   const mode = getKeyMode(trimmed);
   blank();

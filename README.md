@@ -1,6 +1,8 @@
 # PayBridgeNP CLI
 
-Official CLI for the [PayBridgeNP](https://paybridgenp.com) payment gateway. Accept eSewa, Khalti, and ConnectIPS through a single API.
+Official CLI for the [PayBridgeNP](https://paybridgenp.com) payment gateway. Accept eSewa, Khalti, and Fonepay through a single API.
+
+**[Discord](https://discord.gg/aquta4JwJt)** - community support and questions
 
 ## Install
 
@@ -35,16 +37,16 @@ paybridgenp webhooks listen --port 4242
 
 ## Environment
 
-Set `PAYBRIDGE_API_KEY` to skip `login` in CI/scripts:
+Set `PAYBRIDGENP_API_KEY` to skip `login` in CI/scripts:
 
 ```bash
-PAYBRIDGE_API_KEY=sk_test_... paybridgenp payments list
+PAYBRIDGENP_API_KEY=sk_test_... paybridgenp payments list
 ```
 
 Override the API base URL for local development:
 
 ```bash
-PAYBRIDGE_API_BASE=http://localhost:3000 paybridgenp status
+PAYBRIDGENP_API_BASE=http://localhost:3000 paybridgenp status
 ```
 
 ## License

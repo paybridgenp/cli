@@ -72,6 +72,6 @@ export async function testCommand(opts: { amount: number; open: boolean; debug: 
   blank();
   label("eSewa", "merchant code EPAYTEST");
   label("Khalti", "phone 9800000001 · PIN 1111 · OTP 987654");
-  label("ConnectIPS", "username testmerchant · password Test@123");
+  label("Fonepay", "use the provider's sandbox QR flow");
   blank();
 }
