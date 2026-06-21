@@ -339,7 +339,7 @@ var NEXTJS_WEBHOOK = `import PayBridgeNP from "@paybridge-np/sdk";
 
 export async function POST(req: Request) {
   const body = await req.text();
-  const sig = req.headers.get("x-paybridge-signature") ?? "";
+  const sig = req.headers.get("x-paybridgenp-signature") ?? "";
   try {
     const event = PayBridgeNP.webhooks().constructEvent(
       body,
@@ -391,7 +391,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/webhook") {
     let body = "";
     for await (const chunk of req) body += chunk;
-    const sig = req.headers["x-paybridge-signature"] ?? "";
+    const sig = req.headers["x-paybridgenp-signature"] ?? "";
 
     try {
       const event = PayBridgeNP.webhooks().constructEvent(
@@ -1043,7 +1043,7 @@ async function webhooksListenCommand(opts) {
     req.on("data", (chunk) => chunks.push(chunk));
     req.on("end", async () => {
       const body = Buffer.concat(chunks).toString("utf8");
-      const sig = req.headers["x-paybridge-signature"] ?? null;
+      const sig = req.headers["x-paybridgenp-signature"] ?? null;
       if (opts.secret) {
         try {
           await PayBridgeNP2.webhooks.constructEvent(body, sig, opts.secret);

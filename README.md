@@ -43,12 +43,6 @@ Set `PAYBRIDGENP_API_KEY` to skip `login` in CI/scripts:
 PAYBRIDGENP_API_KEY=sk_test_... paybridgenp payments list
 ```
 
-Override the API base URL for local development:
-
-```bash
-PAYBRIDGENP_API_BASE=http://localhost:3000 paybridgenp status
-```
-
 ## License
 
 MIT

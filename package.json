@@ -1,7 +1,16 @@
 {
   "name": "@paybridge-np/cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Official CLI for the PayBridgeNP payment gateway",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paybridgenp/cli.git"
+  },
+  "homepage": "https://github.com/paybridgenp/cli#readme",
+  "bugs": {
+    "url": "https://github.com/paybridgenp/cli/issues"
+  },
   "type": "module",
   "bin": {
     "paybridgenp": "dist/index.js",
@@ -18,7 +27,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.9.0",
-    "@paybridge-np/sdk": "^3.0.0",
+    "@paybridge-np/sdk": "workspace:*",
     "cli-table3": "^0.6.5",
     "commander": "^12.0.0",
     "conf": "^13.0.0",

@@ -85,7 +85,7 @@ export async function webhooksListenCommand(opts: ListenOpts): Promise<void> {
     req.on("data", (chunk: Buffer) => chunks.push(chunk));
     req.on("end", async () => {
       const body = Buffer.concat(chunks).toString("utf8");
-      const sig = req.headers["x-paybridge-signature"] as string | undefined ?? null;
+      const sig = req.headers["x-paybridgenp-signature"] as string | undefined ?? null;
 
       if (opts.secret) {
         try {
